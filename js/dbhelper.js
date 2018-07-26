@@ -1,6 +1,35 @@
 /**
  * Common database helper functions.
  */
+
+// adding values into the db
+    /*
+var dbPromise = idb.open('test-db', 1, function(upgradeDb) {
+  var keyValStore = upgradeDb.createObjectStore('keyval'); // create an object
+  keyValStore.put('world', 'hello'); // put values
+  upgradeDb.createObjectStore('people', { keyPath: 'name' });
+});
+
+// reading from the db
+dbPromise.then(function(db) {
+  var tx = db.transaction('keyval');
+  var keyValStore = tx.objectStore('keyval');
+  return keyValStore.get('hello');
+}).then(function(val) {
+  console.log('The value of "hello" is', val);
+});
+
+// adding another values into the db
+dbPromise.then(function(db) {
+   var tx = db.transaction('keyval', 'readwrite');
+   var keyValStore = tx.objectStore('keyval');
+   keyValStore.put('bar', 'foo');
+   return tx.complete;
+}).then(function() {
+   console.log('Added foo:bar to keyval');
+});
+*/
+
 class DBHelper {
 
   /**
@@ -8,27 +37,73 @@ class DBHelper {
    * Change this to restaurants.json file location on your server.
    */
   static get DATABASE_URL() {
-    const port = 8000 // Change this to your server port
-    return `http://localhost:${port}/data/restaurants.json`;
+      const port = 1337; // Change this to your server port
+      return `http://localhost:${port}/restaurants`;
+  }
+
+  static get PROMISE_RESOLVED() {
+      // if the browser doesn't support service worker,
+      // we don't care about having a database
+      if (!navigator.serviceWorker) {
+          return Promise.resolve();
+      }
+
+      return idb.open('restaurants', 1, function(upgradeDb) {
+          const store = upgradeDb.createObjectStore("restaurants", {
+              keyPath: 'id'
+          });
+      });
   }
 
   /**
    * Fetch all restaurants.
    */
   static fetchRestaurants(callback) {
-    let xhr = new XMLHttpRequest();
-    xhr.open('GET', DBHelper.DATABASE_URL);
-    xhr.onload = () => {
-      if (xhr.status === 200) { // Got a success response from server!
-        const json = JSON.parse(xhr.responseText);
-        const restaurants = json.restaurants;
-        callback(null, restaurants);
-      } else { // Oops!. Got an error from server.
-        const error = (`Request failed. Returned status of ${xhr.status}`);
-        callback(error, null);
-      }
-    };
-    xhr.send();
+
+      // test if IDB database restaurants contains any data
+      DBHelper.PROMISE_RESOLVED.then(db => {
+          if (!db) return;
+
+          const tx = db.transaction('restaurants', 'readwrite');
+          const store = tx.objectStore('restaurants');
+          return store.getAll();
+      // show all restaurants
+      }).then(allRestaurants => {
+          // there isn't any restaurant in the idb db
+         if (allRestaurants.length === 0) {
+             console.log('empty idb db');
+             // get restaurant from the server
+             fetch(`${DBHelper.DATABASE_URL}`) // from where we pull data
+                 .then((response) => {
+                     // get the json
+                     console.log('get json from the server');
+                     return response.json(); // parse the JSON response
+                 })
+                 // save restaurants into the idb db
+                 .then((response) => { // get and start using the returned data
+                     console.log('save restaurants into the idb db');
+                     const restaurants = response;
+
+                     // the idb db section - make transaction, select store and go through the json to put its data into the idb's store
+                     this.PROMISE_RESOLVED.then(db => {
+                         const tx = db.transaction('restaurants', 'readwrite');
+                         const store = tx.objectStore('restaurants');
+                         restaurants.forEach(restaurant => {
+                             store.put(restaurant);
+                         });
+                     });
+
+                     callback(null,restaurants);
+                 })
+                 .catch((error) => { // for handling with errors
+                     callback(error,null)
+                 })
+         } else {
+             // restaurants are stored in the idb db so we use them
+             console.log('from the idb db');
+             callback(null, allRestaurants);
+         }
+      });
   }
 
   /**
@@ -36,6 +111,7 @@ class DBHelper {
    */
   static fetchRestaurantById(id, callback) {
     // fetch all restaurants with proper error handling.
+
     DBHelper.fetchRestaurants((error, restaurants) => {
       if (error) {
         callback(error, null);

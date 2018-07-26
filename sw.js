@@ -1,11 +1,12 @@
 self.addEventListener('install', function(event) {
     event.waitUntil(
-        caches.open('mws-restaurant-stage-static-v2').then(function(cache) {
+        caches.open('mws-restaurant-stage-static-v6').then(function(cache) {
             return cache.addAll(
                 [
                     '/',
                     '/css/styles.css',
-                    '/js/main.js',
+                    'idb.js',
+                    'js/main.js',
                     '/js/dbhelper.js',
                     '/js/restaurant_info.js',
                     '/img/1.jpg',
@@ -20,16 +21,6 @@ self.addEventListener('install', function(event) {
                     '/img/10.jpg',
                     'index.html',
                     'restaurant.html',
-                    'restaurant.html?id=1',
-                    'restaurant.html?id=2',
-                    'restaurant.html?id=3',
-                    'restaurant.html?id=4',
-                    'restaurant.html?id=5',
-                    'restaurant.html?id=6',
-                    'restaurant.html?id=7',
-                    'restaurant.html?id=8',
-                    'restaurant.html?id=9',
-                    'restaurant.html?id=10',
                     'https://unpkg.com/leaflet@1.3.1/dist/leaflet.css',
                     'https://unpkg.com/leaflet@1.3.1/dist/leaflet.js',
                     'data/restaurants.json'

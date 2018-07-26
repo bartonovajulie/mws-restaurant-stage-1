@@ -1,0 +1,22 @@
+{
+  "short_name": "MWS Restaurant Stage 2",
+  "name": "Restaurant Reviews App—Stage 2",
+  "icons": [
+    {
+      "src": "icon_192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon_512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "index.html",
+  "background_color": "#f3f3f3",
+  "display": "standalone",
+  "orientation": "landscape",
+  "scope": "/",
+  "theme_color": "#f18200"
+}
