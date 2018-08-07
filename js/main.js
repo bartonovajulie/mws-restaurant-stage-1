@@ -1,3 +1,5 @@
+
+
 let restaurants,
   neighborhoods,
   cuisines;
@@ -169,6 +171,24 @@ createRestaurantHTML = (restaurant) => {
   const name = document.createElement('h1');
   name.innerHTML = restaurant.name;
   li.append(name);
+
+  const isFavorite = document.createElement('span');
+  li.append(isFavorite);
+
+  const isFavoriteCheck = document.createElement('input');
+  isFavoriteCheck.type = 'checkbox';
+  isFavoriteCheck.setAttribute('id', `favoriteRestaurant${restaurant.id}`);
+  (restaurant.is_favorite === true) ? isFavoriteCheck.checked = true : isFavoriteCheck.checked = false;
+  isFavorite.append(isFavoriteCheck);
+
+  isFavoriteCheck.addEventListener('change', () => {
+      DBHelper.fetchFavoriteRestaurant(restaurant.id, isFavoriteCheck.checked);
+    });
+
+  const isFavoriteLabel = document.createElement('label');
+  isFavoriteLabel.setAttribute('for', `favoriteRestaurant${restaurant.id}`);
+  isFavoriteLabel.innerText = 'Favourite restaurant';
+  isFavorite.append(isFavoriteLabel);
 
   const neighborhood = document.createElement('p');
   neighborhood.innerHTML = restaurant.neighborhood;

@@ -56,6 +56,43 @@ class DBHelper {
   }
 
   /**
+   * Save the property "is_favorite" to DBs when user changed it on the UI
+   */
+  static fetchFavoriteRestaurant(id, checked) {
+
+      // change value in IndexedDB (cached data)
+      DBHelper.PROMISE_RESOLVED.then(db => {
+          if (!db) return;
+          // get the Restaurant from the JSON (by ID)
+          return db.transaction('restaurants')
+              .objectStore('restaurants').get(id);
+      }).then(obj => {
+          let data = obj;
+          // change the property for the restaurant
+          data.is_favorite = checked;
+          DBHelper.PROMISE_RESOLVED.then(db => {
+              // and update the record of restaurant
+              db.transaction('restaurants','readwrite')
+                  .objectStore('restaurants').put(data);
+          });
+      });
+
+      // change value in DB (raw data on the server)
+      fetch(`${DBHelper.DATABASE_URL}/${id}`, {
+              method: 'PUT',
+              headers: {
+                  "Content-Type": "application/json; charset=utf-8",
+              },
+              body: JSON.stringify({ 'is_favorite' : checked })
+          }
+      )
+          .then((response) => {
+              response.json();
+          })
+          .catch(error => console.error(`Fetch Error =\n`, error));
+  }
+
+  /**
    * Fetch all restaurants.
    */
   static fetchRestaurants(callback) {
@@ -83,7 +120,6 @@ class DBHelper {
                  .then((response) => { // get and start using the returned data
                      console.log('save restaurants into the idb db');
                      const restaurants = response;
-
                      // the idb db section - make transaction, select store and go through the json to put its data into the idb's store
                      this.PROMISE_RESOLVED.then(db => {
                          const tx = db.transaction('restaurants', 'readwrite');
