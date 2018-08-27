@@ -46,6 +46,36 @@
       <table id="restaurant-hours"></table>
     </section>
     <!-- end restaurant -->
+    
+    <!-- Beginning review form -->
+    <section id="review-form">
+      <h2>Add Your Review</h2>
+      <form id="review-form-el">
+        <div class="review-form__group">
+          <label class="review-form__label" for="name">Your Name:</label>
+          <input class="review-form__input" id="name" type="text" name="name" placeholder="Your Name" required />
+        </div>
+        <div class="review-form__group">
+          <label class="review-form__label" for="rating">Your Rating:</label>
+          <select name="rating" id="rating" class="review-form__select">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3" selected>3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        </div>
+        <div class="review-form__group">
+          <label class="review-form__label" for="comments">Your Comments:</label>
+          <textarea name="comments" id="comments" rows="10" placeholder="Your Comments" class="review-form__textarea" required></textarea>
+        </div>
+        <div class="review-form__group">
+          <input type="submit" value="Submit" aria-label="Submit Your Review">
+        </div>
+      </form>
+    </section>
+    <!-- end review form -->
+    
     <!-- Beginning reviews -->
     <section id="reviews-container">
       <ul id="reviews-list" aria-label="Restaurant's reviews"></ul>
