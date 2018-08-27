@@ -72,7 +72,7 @@ fetchRestaurantFromURL = (callback) => {
       }
 
         // get reviews from DB by current restaurant id
-        DBHelper.getAllReviews(self.restaurant.id, (error, reviews) => {
+        DBHelper.fetchReviews(self.restaurant.id, (error, reviews) => {
 
           // save reviews into restaurant object
           self.restaurant.reviews = reviews;
@@ -155,6 +155,8 @@ fillReviewsHTML = (reviews = self.restaurant.reviews) => {
     ul.appendChild(createReviewHTML(review));
   });
   container.appendChild(ul);
+
+  submitReview();
 }
 
 /**
@@ -180,6 +182,46 @@ createReviewHTML = (review) => {
 
   return li;
 }
+
+/**
+ * Submit review form and save it to the DB
+ */
+submitReview = () => {
+  const form = document.getElementById('review-form-el');
+
+  // listen when form will be submitted
+  form.addEventListener('submit', (e) => {
+    // the default action that belongs to the event will not occur
+    e.preventDefault();
+
+      let newReview = {
+          restaurant_id: self.restaurant.id,
+          name: document.getElementById('name').value,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          rating: document.getElementById('rating').value,
+          comments: document.getElementById('comments').value
+      };
+
+
+      // JS validation that name and comments were filled out
+      if (newReview.name === '' || newReview.comments === '') {
+        alert('Fields have to be filled out.');
+        return;
+      }
+
+      // if form was filled out, continue
+      // add new review to HTML DOM
+      document.getElementById('reviews-list').appendChild(createReviewHTML(newReview));
+
+      // change into JSON
+      JSON.stringify(newReview);
+      // make DB magic
+      DBHelper.creatNewReview(newReview);
+      // remove value from form to make inserting of new review easier
+      form.reset();
+  });
+};
 
 /**
  * Add restaurant name to the breadcrumb navigation menu

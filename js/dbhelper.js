@@ -96,8 +96,10 @@ class DBHelper {
           .catch(error => console.error(`Fetch Error =\n`, error));
   }
 
-
-    static getAllReviews(id, callback) {
+    /**
+     * Fetch all reviews
+     */
+    static fetchReviews(id, callback) {
 
         // test if IDB database reviews contains any data
         DBHelper.PROMISE_RESOLVED.then(db => {
@@ -144,6 +146,10 @@ class DBHelper {
             }
         });
     }
+
+    static creatNewReview (newReview) {
+        console.log(newReview);
+    };
 
   /**
    * Fetch all restaurants.
