@@ -210,7 +210,7 @@ submitReview = () => {
           name: document.getElementById('name').value,
           createdAt: new Date(),
           updatedAt: new Date(),
-          rating: document.getElementById('rating').value,
+          rating: parseInt(document.getElementById('rating').value),
           comments: document.getElementById('comments').value
       };
 
@@ -224,9 +224,6 @@ submitReview = () => {
       // if form was filled out, continue
       // add new review to HTML DOM
       document.getElementById('reviews-list').appendChild(createReviewHTML(newReview));
-
-      // change into JSON
-      JSON.stringify(newReview);
       // make DB magic
       DBHelper.creatNewReview(newReview);
       // remove value from form to make inserting of new review easier

@@ -62,6 +62,7 @@ class DBHelper {
   /**
    * Save the property "is_favorite" to DBs when user changed it on the UI
    */
+  // todo: offline optimization
   static fetchFavoriteRestaurant(id, checked) {
 
       // change value in IndexedDB (cached data)
@@ -146,25 +147,24 @@ class DBHelper {
     }
 
     static creatNewReview(newReview) {
-        console.log(newReview);
 
         // change value in DB (raw data on the server)
-        /*fetch(`${DBHelper.DATABASE_URL}/reviews`, {
+        fetch(`${DBHelper.DATABASE_URL}/reviews`, {
                 method: 'POST',
                 headers: {
                     "Content-Type": "application/json; charset=utf-8",
                 },
-                body: newReview
+                body: JSON.stringify(newReview)
             }
         )
             .then((response) => {
                 response.json();
-                console.log(response.json());
+
+
             })
             .catch(error => {
                 console.error(`Fetch Error =\n`, error);
             });
-            */
     };
 
   /**
