@@ -38,7 +38,8 @@ class DBHelper {
    */
   static get DATABASE_URL() {
       const port = 1337; // Change this to your server port
-      return `http://localhost:${port}/restaurants`;
+      // return `http://localhost:${port}/restaurants`;
+      return `http://localhost:${port}`;
   }
 
   static get PROMISE_RESOLVED() {
@@ -49,7 +50,10 @@ class DBHelper {
       }
 
       return idb.open('restaurants', 1, function(upgradeDb) {
-          const store = upgradeDb.createObjectStore("restaurants", {
+          const store1 = upgradeDb.createObjectStore("restaurants", {
+              keyPath: 'id'
+          });
+          const store2 = upgradeDb.createObjectStore("reviews", {
               keyPath: 'id'
           });
       });
@@ -78,12 +82,12 @@ class DBHelper {
       });
 
       // change value in DB (raw data on the server)
-      fetch(`${DBHelper.DATABASE_URL}/${id}`, {
+      fetch(`${DBHelper.DATABASE_URL}/restaurants/${id}`, {
               method: 'PUT',
               headers: {
                   "Content-Type": "application/json; charset=utf-8",
               },
-              body: JSON.stringify({ 'is_favorite' : checked })
+              body: JSON.stringify({'is_favorite': checked})
           }
       )
           .then((response) => {
@@ -91,6 +95,55 @@ class DBHelper {
           })
           .catch(error => console.error(`Fetch Error =\n`, error));
   }
+
+
+    static getAllReviews(id, callback) {
+
+        // test if IDB database reviews contains any data
+        DBHelper.PROMISE_RESOLVED.then(db => {
+            if (!db) return;
+
+            const tx = db.transaction('reviews', 'readwrite');
+            const store = tx.objectStore('reviews');
+            return store.getAll();
+
+            // show all reviews
+        }).then(allReviews => {
+            // there isn't any review in the idb db
+            if (allReviews.length === 0) {
+                console.log('empty idb db');
+                // get reviews from the server
+                fetch(`${DBHelper.DATABASE_URL}/reviews/?restaurant_id=${id}`) // from where we pull data
+                    .then((response) => {
+                        // get the json
+                        console.log('get json from the server');
+                        return response.json(); // parse the JSON response
+                    })
+                    // save reviews into the idb db
+                    .then((response) => { // get and start using the returned data
+                        console.log('save reviews into the idb db');
+                        const reviews = response;
+                        // the idb db section - make transaction, select store and go through the json to put its data into the idb's store
+                        this.PROMISE_RESOLVED.then(db => {
+                            const tx = db.transaction('reviews', 'readwrite');
+                            const store = tx.objectStore('reviews');
+                            reviews.forEach(review => {
+                                store.put(review);
+                            });
+                        });
+
+                        callback(null, reviews);
+                    })
+                    .catch((error) => { // for handling with errors
+                        callback(null, error);
+                    })
+            } else {
+                // reviews are stored in the idb db so we use them
+                console.log('from the idb db');
+                callback(null, allReviews);
+            }
+        });
+    }
 
   /**
    * Fetch all restaurants.
@@ -110,7 +163,7 @@ class DBHelper {
          if (allRestaurants.length === 0) {
              console.log('empty idb db');
              // get restaurant from the server
-             fetch(`${DBHelper.DATABASE_URL}`) // from where we pull data
+             fetch(`${DBHelper.DATABASE_URL}/restaurants`) // from where we pull data
                  .then((response) => {
                      // get the json
                      console.log('get json from the server');

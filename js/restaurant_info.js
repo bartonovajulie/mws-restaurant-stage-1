@@ -70,8 +70,18 @@ fetchRestaurantFromURL = (callback) => {
         console.error(error);
         return;
       }
-      fillRestaurantHTML();
-      callback(null, restaurant)
+
+        // get reviews from DB by current restaurant id
+        DBHelper.getAllReviews(self.restaurant.id, (error, reviews) => {
+
+          // save reviews into restaurant object
+          self.restaurant.reviews = reviews;
+            if (!reviews) {
+                console.error(error);
+            }
+            fillRestaurantHTML();
+            callback(null, restaurant);
+        });
     });
   }
 }
@@ -157,7 +167,7 @@ createReviewHTML = (review) => {
   li.appendChild(name);
 
   const date = document.createElement('p');
-  date.innerHTML = review.date;
+  date.innerHTML = new Date(review.updatedAt).toDateString();
   li.appendChild(date);
 
   const rating = document.createElement('p');
