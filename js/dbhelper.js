@@ -100,7 +100,9 @@ class DBHelper {
     /**
      * Fetch all reviews
      */
-    static fetchReviews(callback) {
+    static fetchReviews(id, callback) {
+        id = parseInt(id);
+        let badRestaurant = true;
         // test if IDB database reviews contains any data
         DBHelper.PROMISE_RESOLVED.then(db => {
             if (!db) return;
@@ -111,11 +113,19 @@ class DBHelper {
 
             // show all reviews
         }).then(allReviews => {
-            // there isn't any review in the idb db
-            if (allReviews.length === 0) {
-                console.log('empty idb db');
+
+            // test if we are in the right restaurant (default we not)
+            allReviews.forEach(review => {
+                if (review.restaurant_id === id) {
+                    badRestaurant = false;
+                }
+            });
+
+            // there isn't any review in the idb db or in the IDB isn't any review from chosen restaurant
+            if (allReviews.length === 0 || badRestaurant === true) {
+                console.log('empty idb db or idb doesnt contain reviews of this restaurant');
                 // get reviews from the server
-                fetch(`${DBHelper.DATABASE_URL}/reviews`) // from where we pull data
+                fetch(`${DBHelper.DATABASE_URL}/reviews/?restaurant_id=${id}`) // from where we pull data
                     .then((response) => {
                         // get the json
                         console.log('get json from the server');
@@ -133,6 +143,7 @@ class DBHelper {
                                 store.put(review);
                             });
                         });
+
                         callback(null, reviews);
                     })
                     .catch((error) => { // for handling with errors
@@ -146,9 +157,13 @@ class DBHelper {
         });
     }
 
+    /**
+     * put new review into DB server and IDB
+     * @param newReview: new review written by user
+     */
     static creatNewReview(newReview) {
 
-        // change value in DB (raw data on the server)
+        // send new review into server DB
         fetch(`${DBHelper.DATABASE_URL}/reviews`, {
                 method: 'POST',
                 headers: {
@@ -157,11 +172,25 @@ class DBHelper {
                 body: JSON.stringify(newReview)
             }
         )
+            // get the new review
             .then((response) => {
-                response.json();
+                response.json()
+                    .then(review => {
 
+                        // store the new review into IDB
+                        DBHelper.PROMISE_RESOLVED.then(db => {
+                            if (!db) return;
+                            const tx = db.transaction('reviews', 'readwrite');
+                            const store = tx.objectStore('reviews');
+                            store.put(review);
+                        });
+
+                        return review;
+                    })
 
             })
+
+            // TODO: offline solution
             .catch(error => {
                 console.error(`Fetch Error =\n`, error);
             });

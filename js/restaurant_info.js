@@ -71,22 +71,23 @@ fetchRestaurantFromURL = (callback) => {
                 return;
             }
             // get all reviews
-            DBHelper.fetchReviews((error, reviews) => {
+            DBHelper.fetchReviews(id, (error, reviews) => {
 
-                // review array for current restaurant
-                let currentRestaurantReviews = [];
+                let currentReviews = [];
+                self.restaurant.reviews = [];
 
-                // save reviews for current restaurant
+                // show reviews only of this current restaurant
                 reviews.forEach(review => {
-                    if (review.restaurant_id === parseInt(id)) {
-                        currentRestaurantReviews.push(review);
-                    }
+                    console.log(review.restaurant_id, parseInt(id));
+                   if(review.restaurant_id === parseInt(id)) {
+                       currentReviews.push(review);
+                   }
                 });
 
                 // save reviews into restaurant object
-                self.restaurant.reviews = currentRestaurantReviews;
+                self.restaurant.reviews = currentReviews;
 
-                if (!currentRestaurantReviews) {
+                if (!currentReviews) {
                     console.error(error);
                 }
 
