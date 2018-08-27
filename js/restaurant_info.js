@@ -55,36 +55,47 @@ initMap = () => {
  * Get current restaurant from page URL.
  */
 fetchRestaurantFromURL = (callback) => {
-  if (self.restaurant) { // restaurant already fetched!
-    callback(null, self.restaurant)
-    return;
-  }
-  const id = getParameterByName('id');
-  if (!id) { // no id found in URL
-    error = 'No restaurant id in URL'
-    callback(error, null);
-  } else {
-    DBHelper.fetchRestaurantById(id, (error, restaurant) => {
-      self.restaurant = restaurant;
-      if (!restaurant) {
-        console.error(error);
+    if (self.restaurant) { // restaurant already fetched!
+        callback(null, self.restaurant)
         return;
-      }
-
-        // get reviews from DB by current restaurant id
-        DBHelper.fetchReviews(self.restaurant.id, (error, reviews) => {
-
-          // save reviews into restaurant object
-          self.restaurant.reviews = reviews;
-            if (!reviews) {
+    }
+    const id = getParameterByName('id');
+    if (!id) { // no id found in URL
+        error = 'No restaurant id in URL';
+        callback(error, null);
+    } else {
+        DBHelper.fetchRestaurantById(id, (error, restaurant) => {
+            self.restaurant = restaurant;
+            if (!restaurant) {
                 console.error(error);
+                return;
             }
-            fillRestaurantHTML();
-            callback(null, restaurant);
+            // get all reviews
+            DBHelper.fetchReviews((error, reviews) => {
+
+                // review array for current restaurant
+                let currentRestaurantReviews = [];
+
+                // save reviews for current restaurant
+                reviews.forEach(review => {
+                    if (review.restaurant_id === parseInt(id)) {
+                        currentRestaurantReviews.push(review);
+                    }
+                });
+
+                // save reviews into restaurant object
+                self.restaurant.reviews = currentRestaurantReviews;
+
+                if (!currentRestaurantReviews) {
+                    console.error(error);
+                }
+
+                fillRestaurantHTML();
+                callback(null, restaurant);
+            });
         });
-    });
-  }
-}
+    }
+};
 
 /**
  * Create restaurant HTML and add it to the webpage

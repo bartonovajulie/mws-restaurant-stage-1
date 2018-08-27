@@ -99,8 +99,7 @@ class DBHelper {
     /**
      * Fetch all reviews
      */
-    static fetchReviews(id, callback) {
-
+    static fetchReviews(callback) {
         // test if IDB database reviews contains any data
         DBHelper.PROMISE_RESOLVED.then(db => {
             if (!db) return;
@@ -115,7 +114,7 @@ class DBHelper {
             if (allReviews.length === 0) {
                 console.log('empty idb db');
                 // get reviews from the server
-                fetch(`${DBHelper.DATABASE_URL}/reviews/?restaurant_id=${id}`) // from where we pull data
+                fetch(`${DBHelper.DATABASE_URL}/reviews`) // from where we pull data
                     .then((response) => {
                         // get the json
                         console.log('get json from the server');
@@ -133,11 +132,10 @@ class DBHelper {
                                 store.put(review);
                             });
                         });
-
                         callback(null, reviews);
                     })
                     .catch((error) => { // for handling with errors
-                        callback(null, error);
+                        callback(error,null);
                     })
             } else {
                 // reviews are stored in the idb db so we use them
@@ -147,8 +145,26 @@ class DBHelper {
         });
     }
 
-    static creatNewReview (newReview) {
+    static creatNewReview(newReview) {
         console.log(newReview);
+
+        // change value in DB (raw data on the server)
+        /*fetch(`${DBHelper.DATABASE_URL}/reviews`, {
+                method: 'POST',
+                headers: {
+                    "Content-Type": "application/json; charset=utf-8",
+                },
+                body: newReview
+            }
+        )
+            .then((response) => {
+                response.json();
+                console.log(response.json());
+            })
+            .catch(error => {
+                console.error(`Fetch Error =\n`, error);
+            });
+            */
     };
 
   /**
