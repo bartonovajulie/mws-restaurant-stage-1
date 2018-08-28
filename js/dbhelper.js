@@ -2,34 +2,6 @@
  * Common database helper functions.
  */
 
-// adding values into the db
-    /*
-var dbPromise = idb.open('test-db', 1, function(upgradeDb) {
-  var keyValStore = upgradeDb.createObjectStore('keyval'); // create an object
-  keyValStore.put('world', 'hello'); // put values
-  upgradeDb.createObjectStore('people', { keyPath: 'name' });
-});
-
-// reading from the db
-dbPromise.then(function(db) {
-  var tx = db.transaction('keyval');
-  var keyValStore = tx.objectStore('keyval');
-  return keyValStore.get('hello');
-}).then(function(val) {
-  console.log('The value of "hello" is', val);
-});
-
-// adding another values into the db
-dbPromise.then(function(db) {
-   var tx = db.transaction('keyval', 'readwrite');
-   var keyValStore = tx.objectStore('keyval');
-   keyValStore.put('bar', 'foo');
-   return tx.complete;
-}).then(function() {
-   console.log('Added foo:bar to keyval');
-});
-*/
-
 class DBHelper {
 
   /**
@@ -38,7 +10,6 @@ class DBHelper {
    */
   static get DATABASE_URL() {
       const port = 1337; // Change this to your server port
-      // return `http://localhost:${port}/restaurants`;
       return `http://localhost:${port}`;
   }
 
@@ -54,7 +25,12 @@ class DBHelper {
               keyPath: 'id'
           });
           const store2 = upgradeDb.createObjectStore("reviews", {
-              keyPath: 'id'
+              keyPath: 'id',
+              autoIncrement: true
+          });
+          const store3 = upgradeDb.createObjectStore("offline-reviews", {
+              keyPath: 'id',
+              autoIncrement: true
           });
       });
   }
@@ -62,7 +38,6 @@ class DBHelper {
   /**
    * Save the property "is_favorite" to DBs when user changed it on the UI
    */
-  // todo: offline optimization
   static fetchFavoriteRestaurant(id, checked) {
 
       // change value in IndexedDB (cached data)
@@ -99,6 +74,8 @@ class DBHelper {
 
     /**
      * Fetch all reviews
+     * @param id: current restaurant id
+     * @param callback
      */
     static fetchReviews(id, callback) {
         id = parseInt(id);
@@ -162,7 +139,6 @@ class DBHelper {
      * @param newReview: new review written by user
      */
     static creatNewReview(newReview) {
-
         // send new review into server DB
         fetch(`${DBHelper.DATABASE_URL}/reviews`, {
                 method: 'POST',
@@ -189,12 +165,37 @@ class DBHelper {
                     })
 
             })
-
-            // TODO: offline solution
-            .catch(error => {
+            .catch( (error) => {
                 console.error(`Fetch Error =\n`, error);
+                DBHelper.PROMISE_RESOLVED.then(db => {
+                    if (!db) return;
+                    const tx = db.transaction('offline-reviews', 'readwrite');
+                    const store = tx.objectStore('offline-reviews');
+                    store.put(newReview);
+
+                    const tx2 = db.transaction('reviews', 'readwrite');
+                    const store2 = tx2.objectStore('reviews');
+                    store2.put(newReview);
+                });
             });
     };
+
+    static sendReviewsToServer() {
+        console.log('Send reviews from offline-reviews IDB to server.');
+        DBHelper.PROMISE_RESOLVED.then(db => {
+            if (!db) return;
+
+            const tx = db.transaction('offline-reviews', 'readwrite');
+            const store = tx.objectStore('offline-reviews');
+
+            store.getAll().then(reviews => {
+                reviews.forEach(review => {
+                    DBHelper.creatNewReview(review);
+                });
+                store.clear();
+            })
+        })
+    }
 
   /**
    * Fetch all restaurants.

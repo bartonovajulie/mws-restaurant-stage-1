@@ -8,6 +8,15 @@ document.addEventListener('DOMContentLoaded', (event) => {
   initMap();
 });
 
+window.addEventListener('offline', () => {
+    console.log('App is offline');
+});
+
+window.addEventListener('online', () => {
+    console.log('App is online');
+    DBHelper.sendReviewsToServer();
+});
+
 /**
  * Initialize leaflet map
  */
@@ -78,7 +87,6 @@ fetchRestaurantFromURL = (callback) => {
 
                 // show reviews only of this current restaurant
                 reviews.forEach(review => {
-                    console.log(review.restaurant_id, parseInt(id));
                    if(review.restaurant_id === parseInt(id)) {
                        currentReviews.push(review);
                    }
