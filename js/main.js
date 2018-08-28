@@ -162,7 +162,7 @@ createRestaurantHTML = (restaurant) => {
 
   const image = document.createElement('img');
   image.className = 'restaurant-img';
-  image.src = DBHelper.imageUrlForRestaurant(restaurant) + '.jpg';
+  image.src = DBHelper.thumbUrlForRestaurant(restaurant) + '.webp';
   image.alt = restaurant.name;
   if (!image.src.includes('undefined')) {
     li.append(image);

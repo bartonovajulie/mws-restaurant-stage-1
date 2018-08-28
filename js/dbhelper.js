@@ -10,7 +10,7 @@ class DBHelper {
    */
   static get DATABASE_URL() {
       const port = 1337; // Change this to your server port
-      return `http://localhost:${port}`;
+      return `https://localhost:${port}`;
   }
 
   static get PROMISE_RESOLVED() {
@@ -369,6 +369,9 @@ class DBHelper {
   static imageUrlForRestaurant(restaurant) {
     return (`/img/${restaurant.photograph}`);
   }
+    static thumbUrlForRestaurant(restaurant) {
+        return (`/img/thumb/${restaurant.photograph}`);
+    }
 
   /**
    * Map marker for a restaurant.
